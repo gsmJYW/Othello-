@@ -17,8 +17,8 @@ void initBoard()
 			board[row][column] = EMPTY;
 
 	// 흑돌과 백돌 교차 후 시작
-	board[3][3] = WHITE; board[4][4] = BLACK;
-	board[3][4] = BLACK; board[4][3] = WHITE;
+	board[3][3] = WHITE; board[3][4] = BLACK;
+	board[4][3] = BLACK; board[4][4] = WHITE;
 }
 
 // 보드판 출력
@@ -99,7 +99,7 @@ void PrintBoard()
 	std::cout << "　　　　 흑 ";
 	SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 7);
 	
-	std::cout << std::setfill('0') << std::setw(2) << blackPieceCount << " VS " << std::setfill('0') << std::setw(2) << whitePieceCount;
+	std::cout << std::setfill('0') << std::setw(2) << blackPieceCount << " vs " << std::setfill('0') << std::setw(2) << whitePieceCount;
 
 	if (turn == WHITE)
 	{
