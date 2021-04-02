@@ -92,9 +92,10 @@ int main()
 	}
 
 	int myColor = ColorMenu();
-	int turn = BLACK;
+	turn = BLACK;
 
 	system("mode con:cols=34 lines=19");
+	initBoard();
 	PrintBoard();
 	
 	while (true)
