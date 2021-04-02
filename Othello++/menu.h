@@ -6,6 +6,13 @@
 #define BLACK 1
 #define WHITE 2
 
+#define TO_EXIT				0
+#define	TO_START_MENU		1
+#define TO_HELP_MENU		2
+#define TO_CONNECTION_MENU	3
+#define TO_SERVER_MENU		4
+#define TO_CLIENT_MENU		5
+
 // 로고 출력
 void PrintLogo()
 {
@@ -71,12 +78,12 @@ void PrintStartMenu(int menu)
 }
 
 // 설명 출력
-int Help()
+int HelpMenu()
 {
 	system("cls");
 	PrintLogo();
 
-	std::cout << "\n\n\n 키보드 방향키로 보드판의 커서(■□)를 이동시킬 수 있습니다.\n"
+	std::cout << "\n\n\n 키보드 방향키로 보드판의 커서(◆◇)를 이동시킬 수 있습니다.\n"
 		<< " 엔터를 입력하면 커서가 있는 위치에 돌(●○)을 놓습니다.\n"
 		<< " 만약 돌을 놓을 수 있는 곳이 없다면 자동으로 턴이 넘겨집니다.\n"
 		<< " 흑이 선공, 백이 후공이며 흑백 선택은 선착순입니다.\n"
@@ -84,18 +91,12 @@ int Help()
 		<< " 확인 <┛";
 
 	// 엔터 입력 시 종료
-	while (true)
+	while (_getch() != 13)
 	{
-		if (_kbhit())
-		{
-			if (_getch() == 13)
-			{
-				break;
-			}
-		}
+
 	}
 
-	return 1;
+	return TO_START_MENU;
 }
 
 // 시작 메뉴
@@ -108,11 +109,9 @@ int StartMenu()
 	{
 		if (_kbhit())
 		{
-			int key = _getch();
-
-			switch (key) {
-			
-			// 위쪽 메뉴로 이동
+			switch (_getch())
+			{
+			// 위
 			case 72:
 				if (menu > 1)
 				{
@@ -121,7 +120,7 @@ int StartMenu()
 				}
 				break;
 
-			// 아래쪽 메뉴로 이동
+			// 아래
 			case 80:
 				if (menu < 3)
 				{
@@ -130,21 +129,21 @@ int StartMenu()
 				}
 				break;
 
-			// 메뉴 선택
+			// 엔터
 			case 13:
 				switch (menu) {
 				// 시작
 				case 1:
-					return 3; // 연결 메뉴로 이동
+					return TO_CONNECTION_MENU;
 
 				// 설명
 				case 2:
-					return 2; // 설명으로 이동
+					return TO_HELP_MENU;
 					break;
 
 				// 종료
 				case 3:
-					return 0;
+					return TO_EXIT;
 				}
 			}
 		}
@@ -209,9 +208,9 @@ int ConnectionMenu()
 	{
 		if (_kbhit())
 		{
-			int key = _getch();
-
-			switch (key) {
+			switch (_getch())
+			{
+			// 위
 			case 72:
 				if (menu > 1)
 				{
@@ -220,6 +219,7 @@ int ConnectionMenu()
 				}
 				break;
 
+			// 아래
 			case 80:
 				if (menu < 3)
 				{
@@ -228,16 +228,20 @@ int ConnectionMenu()
 				}
 				break;
 
+			// 엔터
 			case 13:
 				switch (menu) {
+				// 게임 열기
 				case 1:
-					return 4;
+					return TO_SERVER_MENU;
 
+				// 게임 참여하기
 				case 2:
-					return 5;
+					return TO_CLIENT_MENU;
 
+				// 취소
 				case 3:
-					return 1;
+					return TO_START_MENU;
 				}
 			}
 		}
@@ -298,7 +302,7 @@ void PrintColorMenu(int menu, int color, int opponentColor)
 	system("cls");
 	PrintLogo();
 
-	std::cout << "\n　　　　　　　　　　　　　　　　　　　　　　　 ※흑이 선공입니다\n\n\n";
+	std::cout << "\n　　　　　　　　　　　　　　　　　　　　　　　 ※흑이 선공입니다.\n\n\n";
 
 	// 메뉴 출력
 
@@ -363,11 +367,9 @@ int ColorMenu()
 
 		if (_kbhit())
 		{
-			int key = _getch();
-
-			switch (key) {
-
-				// 위쪽 메뉴로 이동
+			switch (_getch())
+			{
+			// 위
 			case 72:
 				if (menu > 1)
 				{
@@ -376,7 +378,7 @@ int ColorMenu()
 				}
 				break;
 
-				// 아래쪽 메뉴로 이동
+			// 아래
 			case 80:
 				if (menu < 2)
 				{
@@ -385,7 +387,7 @@ int ColorMenu()
 				}
 				break;
 
-				// 메뉴 선택
+			// 엔터
 			case 13:
 				if (menu == 1 && opponentColor != BLACK)
 				{	
