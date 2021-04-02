@@ -14,29 +14,29 @@ int main()
 	{
 		switch (menuNumber)
 		{
-			// 종료 메뉴
-		case 0:
+			// 종료
+		case TO_EXIT:
 			exit(0);
 
 			// 시작 메뉴
-		case 1:
+		case TO_START_MENU:
 			menuNumber = StartMenu();
 			break;
 
-			// 설명
-		case 2:
-			menuNumber = Help();
+			// 설명 메뉴
+		case TO_HELP_MENU:
+			menuNumber = HelpMenu();
 			break;
 
 			// 접속 메뉴 
-		case 3:
+		case TO_CONNECTION_MENU:
 			menuNumber = ConnectionMenu();
 			break;
 		}
 	}
 
 	// 게임 열기
-	if (menuNumber == 4)
+	if (menuNumber == TO_SERVER_MENU)
 	{
 		connection = std::thread(Server);
 		int previousServerStatus = 0;
@@ -91,16 +91,83 @@ int main()
 		}
 	}
 
-	int myColor = ColorMenu();
-	turn = BLACK;
+	myColor = ColorMenu(); // 색 선택
 
-	system("mode con:cols=34 lines=19");
-	initBoard();
-	PrintBoard();
+	initBoard();  // 돌 교차 후 시작
+	turn = BLACK; // 흑이 선공
+
+	system("mode con:cols=34 lines=20");
 	
 	while (true)
 	{
+		// 내 턴일 때
+		if (myColor == turn)
+		{
+			notification = "당신 차례입니다.";
 
+			cursorX = 0;
+			cursorY = 0;
+			PrintBoard();
+
+			while (true)
+			{
+				if (_kbhit())
+				{
+					switch (_getch())
+					{
+					// 위
+					case 72:
+						if (cursorY > 0)
+						{
+							cursorY--;
+							PrintBoard();
+						}
+						break;
+
+					// 오른쪽
+					case 75:
+						if (cursorX > 0)
+						{
+							cursorX--;
+							PrintBoard();
+						}
+						break;
+
+					// 왼쪽
+					case 77:
+						if (cursorX < 7)
+						{
+							cursorX++;
+							PrintBoard();
+						}
+						break;
+
+					// 아래
+					case 80:
+						if (cursorY < 7)
+						{
+							cursorY++;
+							PrintBoard();
+						}
+						break;
+
+					// 엔터
+					case 13:
+						std::cout << isAbleToPlace() << std::endl;
+						break;
+					}
+				}
+			}
+		}
+		else {
+			notification = "상대 차례입니다.";
+			PrintBoard();
+
+			while (receive.length() <= 0)
+			{
+
+			}
+		}
 	}
 
 	exit(0);
