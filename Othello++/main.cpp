@@ -1,6 +1,38 @@
 ﻿#include <WS2tcpip.h>
+#include <vector>
+#include <regex>
 #include "menu.h"
 #include "board.h"
+
+// 문자열을 특정 문자 기준으로 나눠 vector에 저장
+std::vector<std::string> Split(std::string str, char sep = ' ')
+{
+	std::vector<std::string> vec;
+	std::string word = "";
+
+	for (int index = 0; index < str.length(); index++)
+	{
+		if (str[index] == sep)
+		{
+			if (word.length() > 0)
+			{
+				vec.push_back(word);
+				word = "";
+			}
+		}
+		else if (index == str.length() - 1)
+		{
+			word += str[index];
+			vec.push_back(word);
+		}
+		else
+		{
+			word += str[index];
+		}
+	}
+
+	return vec;
+}
 
 int main()
 {
@@ -35,65 +67,42 @@ int main()
 		}
 	}
 
+	SOCKET sock;
+	std::string receive;
+
 	// 게임 열기
 	if (menuNumber == TO_SERVER_MENU)
 	{
-		connection = std::thread(Server);
-		int previousServerStatus = 0;
+		int serverStatus = 0;
 
-		while (true)
-		{
-			// 클라이언트 연결 완료
-			if (serverStatus == 2)
-			{
-				break;
-			}
-			// 연결 진행도 변함
-			else if (previousServerStatus != serverStatus)
-			{
-				ServerMenu(serverStatus);
-				previousServerStatus = serverStatus;
-			}
-			// 연결 실패
-			else if (_kbhit() && serverStatus == -1)
-			{
-				if (_getch() == 13)
-				{
-					exit(1);
-				}
-			}
-		}
+		connection = std::thread(Server, &sock, &serverStatus, &receive);
+		ServerMenu(&serverStatus);
 	}
 	// 게임 접속하기
 	else
 	{
-		connection = std::thread(Client);
-		int previousClientStatus = -1;
+		int clientStatus = 0;
 
-		while (true)
-		{
-			if (clientStatus == 2)
-			{
-				break;
-			}
-			else if (previousClientStatus != clientStatus)
-			{
-				ClientMenu(clientStatus);
-				previousClientStatus = clientStatus;
-			}
-			else if (_kbhit() && clientStatus == -1)
-			{
-				if (_getch() == 13)
-				{
-					exit(1);
-				}
-			}
-		}
+		connection = std::thread(Client, &sock, &clientStatus, &receive);
+		ClientMenu(&clientStatus);
 	}
 
-	myColor = ColorMenu(); // 색 선택
+	int myColor = ColorMenu(sock, &receive); // 색 선택
+	int opponentColor;
 
-	initBoard();  // 돌 교차 후 시작
+	if (myColor == BLACK)
+	{
+		opponentColor = WHITE;
+	}
+	else
+	{
+		opponentColor = BLACK;
+	}
+
+	int board[8][8];
+	int turn;
+
+	initBoard(board);  // 돌 교차 후 시작
 	turn = BLACK; // 흑이 선공
 
 	system("mode con:cols=34 lines=20");
@@ -103,13 +112,14 @@ int main()
 		// 내 턴일 때
 		if (myColor == turn)
 		{
-			notification = "당신 차례입니다.";
+			std::string notification = "당신 차례입니다.";
 
-			cursorX = 0;
-			cursorY = 0;
-			PrintBoard();
+			int cursorX = 0;
+			int cursorY = 0;
+			
+			bool refreshNeeded = true;
 
-			while (true)
+			while (myColor == turn)
 			{
 				if (_kbhit())
 				{
@@ -120,7 +130,7 @@ int main()
 						if (cursorY > 0)
 						{
 							cursorY--;
-							PrintBoard();
+							refreshNeeded = true;
 						}
 						break;
 
@@ -129,7 +139,7 @@ int main()
 						if (cursorX > 0)
 						{
 							cursorX--;
-							PrintBoard();
+							refreshNeeded = true;
 						}
 						break;
 
@@ -138,7 +148,7 @@ int main()
 						if (cursorX < 7)
 						{
 							cursorX++;
-							PrintBoard();
+							refreshNeeded = true;
 						}
 						break;
 
@@ -147,25 +157,50 @@ int main()
 						if (cursorY < 7)
 						{
 							cursorY++;
-							PrintBoard();
+							refreshNeeded = true;
 						}
 						break;
 
 					// 엔터
 					case 13:
-						std::cout << isAbleToPlace() << std::endl;
+						if (isAvailable(board, myColor, cursorX, cursorY))
+						{
+							refreshNeeded = true;
+							placePiece(board, myColor, cursorX, cursorY);
+
+							Send(sock, "place " + std::to_string(myColor) + " " + std::to_string(cursorX) + " " + std::to_string(cursorY));
+							turn = opponentColor;
+						}
 						break;
 					}
+				}
+
+				if (refreshNeeded)
+				{
+					PrintBoard(board, myColor, turn, cursorX, cursorY, notification);
+					refreshNeeded = false;
 				}
 			}
 		}
 		else {
-			notification = "상대 차례입니다.";
-			PrintBoard();
+			std:: string notification = "상대 차례입니다.";
+			PrintBoard(board, myColor, turn, NULL, NULL, notification);
 
-			while (receive.length() <= 0)
+			while (true)
 			{
+				if (receive.length() > 0)
+				{
+					std::vector<std::string> receiveArgs = Split(receive);
 
+					if (receiveArgs[0] == "place")
+					{
+						placePiece(board, std::stoi(receiveArgs[1]), std::stoi(receiveArgs[2]), std::stoi(receiveArgs[3]));
+					}
+
+					turn = myColor;
+					receive = "";
+					break;
+				}
 			}
 		}
 	}
