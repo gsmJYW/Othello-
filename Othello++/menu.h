@@ -248,52 +248,80 @@ int ConnectionMenu()
 	}
 }
 
-void ServerMenu(int serverStatus)
+void ServerMenu(int* serverStatus)
 {
-	system("cls");
-	PrintLogo();
+	int previousServerStatus = UNCALLED;
 
-	std::cout << "\n\n\n\n\n\n";
-
-	switch (serverStatus)
+	while (*serverStatus != CONNECTED)
 	{
-	case -1:
-		std::cout << " 게임 생성 실패\n"
-			<< " 확인 <┛";
-		break;
+		if (previousServerStatus != *serverStatus)
+		{
+			system("cls");
+			PrintLogo();
 
-	case 0:
-		std::cout << " 게임 생성 중";
-		break;
+			std::cout << "\n\n\n\n\n\n";
 
-	case 1:
-		std::cout << " 게임 생성 완료\n"
-			<< " 접속자를 기다리는 중";
-		break;
+			switch (*serverStatus)
+			{
+			case FAILED:
+				std::cout << " 게임 생성 실패\n"
+					<< " 확인 <┛";
+				while (_getch() != 13)
+				{
+
+				}
+				exit(1);
+
+			case UNCALLED:
+				std::cout << " 게임 생성 중";
+				break;
+
+			case CONNECTING:
+				std::cout << " 게임 생성 완료\n"
+					<< " 접속자를 기다리는 중";
+				break;
+			}
+
+			previousServerStatus = *serverStatus;
+		}
 	}
 }
 
-void ClientMenu(int clientStatus)
+void ClientMenu(int* clientStatus)
 {
-	system("cls");
-	PrintLogo();
+	int previousClientStatus = UNCALLED;
 
-	std::cout << "\n\n\n\n\n\n";
-
-	switch (clientStatus)
+	while (*clientStatus != CONNECTED)
 	{
-	case -1:
-		std::cout << " 게임 접속 실패\n"
-			<< " 종료 <┛";
-		break;
+		if (previousClientStatus != *clientStatus)
+		{
+			system("cls");
+			PrintLogo();
 
-	case 0:
-		std::cout << " ip 주소:\n ";
-		break;
+			std::cout << "\n\n\n\n\n\n";
 
-	case 1:
-		std::cout << " 게임 접속 중";
-		break;
+			switch (*clientStatus)
+			{
+			case FAILED:
+				std::cout << " 게임 접속 실패\n"
+					<< " 종료 <┛";
+				while (_getch() != 13)
+				{
+
+				}
+				exit(1);
+
+			case IP_INPUT:
+				std::cout << " ip 주소:\n ";
+				break;
+
+			case CONNECTING:
+				std::cout << " 게임 접속 중";
+				break;
+			}
+
+			previousClientStatus = *clientStatus;
+		}
 	}
 }
 
@@ -336,7 +364,7 @@ void PrintColorMenu(int menu, int color, int opponentColor)
 }
 
 // 흑백 선택 메뉴
-int ColorMenu()
+int ColorMenu(SOCKET sock, std::string* receive)
 {
 	int menu = 1;
 	int color = 0;
@@ -346,13 +374,13 @@ int ColorMenu()
 
 	while (true)
 	{
-		if (receive.length() > 0)
+		if ((*receive).length() > 0)
 		{
-			if (receive == "black")
+			if (*receive == "black")
 			{
 				opponentColor = BLACK;
 			}
-			else if (receive == "white")
+			else if (*receive == "white")
 			{
 				opponentColor = WHITE;
 			}
@@ -362,7 +390,7 @@ int ColorMenu()
 			}
 
 			PrintColorMenu(menu, color, opponentColor);
-			receive = "";
+			*receive = "";
 		}
 
 		if (_kbhit())
@@ -393,12 +421,12 @@ int ColorMenu()
 				{	
 					if (color == BLACK)
 					{
-						Send("cancel");
+						Send(sock, "cancel");
 						color = 0;
 					}
 					else
 					{
-						Send("black");
+						Send(sock, "black");
 						color = BLACK;
 					}
 					
@@ -408,11 +436,11 @@ int ColorMenu()
 				{
 					if (color == WHITE)
 					{
-						Send("cancel");
+						Send(sock, "cancel");
 						color = 0;
 					}
 					else {
-						Send("white");
+						Send(sock, "white");
 						color = WHITE;
 					}
 

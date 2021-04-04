@@ -5,18 +5,13 @@
 
 #define UNCALLED 0
 #define FAILED -1
-#define CONNECTING 1
-#define CONNECTED 2
-
-int serverStatus = UNCALLED;
-int clientStatus = UNCALLED;
-std::string ipAddress = "";
-std::string receive = "";
-SOCKET sock;
+#define IP_INPUT 1
+#define CONNECTING 2
+#define CONNECTED 3
 
 #pragma comment (lib, "ws2_32.lib")
 
-void Server()
+void Server(SOCKET* sock, int* serverStatus, std::string* receive)
 {
 	// winsock 초기 설정
 	WSADATA wsData;
@@ -25,7 +20,7 @@ void Server()
 	int wsOk = WSAStartup(ver, &wsData);
 	if (wsOk != 0)
 	{
-		serverStatus = FAILED;
+		*serverStatus = FAILED;
 		return;
 	}
 
@@ -33,7 +28,7 @@ void Server()
 	SOCKET listening = socket(AF_INET, SOCK_STREAM, 0);
 	if (listening == INVALID_SOCKET)
 	{
-		serverStatus = FAILED;
+		*serverStatus = FAILED;
 		return;
 	}
 
@@ -53,13 +48,12 @@ void Server()
 	sockaddr_in client;
 	int clientSize = sizeof(client);
 
-	serverStatus = CONNECTING;
-
-	sock = accept(listening, (sockaddr*)&client, &clientSize);
+	*serverStatus = CONNECTING;
+	*sock = accept(listening, (sockaddr*)&client, &clientSize);
 
 	// 클라이언트 연결 완료
 
-	serverStatus = CONNECTED;
+	*serverStatus = CONNECTED;
 
 	char host[NI_MAXHOST];		// 클라이언트 이름
 	char service[NI_MAXSERV];	// 클라이언트 연결 정보
@@ -83,7 +77,7 @@ void Server()
 		memset(buf, 0, 4096);
 
 		// 클라이언트에게서 데이터 전송 대기
-		int bytesReceived = recv(sock, buf, 4096, 0);
+		int bytesReceived = recv(*sock, buf, 4096, 0);
 		
 		if (bytesReceived == SOCKET_ERROR || bytesReceived == 0)
 		{
@@ -92,27 +86,30 @@ void Server()
 			exit(1);
 		}
 		
-		receive = std::string(buf, 0, bytesReceived);
+		*receive = std::string(buf, 0, bytesReceived);
 	}
 
 	// 소켓 닫기
-	closesocket(sock);
+	closesocket(*sock);
 
 	// winsock 닫기
 	WSACleanup();
 	system("pause");
 }
 
-void Client()
+void Client(SOCKET* sock, int* clientStatus, std::string* receive)
 {
 	int port = 727;
+	std::string ipAddress;
+
+	*clientStatus = IP_INPUT;
 
 	while (ipAddress.length() <= 0)
 	{
 		std::cin >> ipAddress;
 	}
 
-	clientStatus = CONNECTING;
+	*clientStatus = CONNECTING;
 
 	// winsock 초기 설정
 	WSAData data;
@@ -120,17 +117,17 @@ void Client()
 	int wsResult = WSAStartup(ver, &data);
 	if (wsResult != 0)
 	{
-		clientStatus = FAILED;
+		*clientStatus = FAILED;
 		return;
 	}
 
 	// 소켓 생성
-	sock = socket(AF_INET, SOCK_STREAM, 0);
-	if (sock == INVALID_SOCKET)
+	*sock = socket(AF_INET, SOCK_STREAM, 0);
+	if (*sock == INVALID_SOCKET)
 	{
 		WSACleanup();
 
-		clientStatus = -1;
+		*clientStatus = FAILED;
 		return;
 	}
 
@@ -141,19 +138,19 @@ void Client()
 	inet_pton(AF_INET, ipAddress.c_str(), &hint.sin_addr);
 
 	// 서버 연결
-	int connResult = connect(sock, (sockaddr*)&hint, sizeof(hint));
+	int connResult = connect(*sock, (sockaddr*)&hint, sizeof(hint));
 	
 	// 연결 실패
 	if (connResult == SOCKET_ERROR)
 	{
-		closesocket(sock);
+		closesocket(*sock);
 		WSACleanup();
 
-		clientStatus = FAILED;
+		*clientStatus = FAILED;
 		return;
 	}
 
-	clientStatus = CONNECTED;
+	*clientStatus = CONNECTED;
 
 	char buf[4096];
 	std::string userInput;
@@ -163,7 +160,7 @@ void Client()
 		memset(buf, 0, 4096);
 
 		// 서버에게서 데이터 전송 대기
-		int bytesReceived = recv(sock, buf, 4096, 0);
+		int bytesReceived = recv(*sock, buf, 4096, 0);
 		
 		if (bytesReceived == SOCKET_ERROR || bytesReceived == 0)
 		{
@@ -172,14 +169,14 @@ void Client()
 			exit(1);
 		}
 
-		receive = std::string(buf, 0, bytesReceived);
+		*receive = std::string(buf, 0, bytesReceived);
 	}
 
-	closesocket(sock);
+	closesocket(*sock);
 	WSACleanup();
 }
 
-void Send(std::string request)
+void Send(SOCKET sock, std::string request)
 {
 	send(sock, request.c_str(), request.size() + 1, 0);
 	return;
