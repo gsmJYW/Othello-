@@ -11,7 +11,7 @@
 
 #pragma comment (lib, "ws2_32.lib")
 
-void Server(SOCKET* sock, int* serverStatus, std::string* receive)
+void Server(SOCKET* sock, int* serverStatus, std::string* receive, bool* isGameGoingOn)
 {
 	// winsock 초기 설정
 	WSADATA wsData;
@@ -81,14 +81,17 @@ void Server(SOCKET* sock, int* serverStatus, std::string* receive)
 		
 		if (bytesReceived == SOCKET_ERROR || bytesReceived == 0)
 		{
-			std::cout << "\33[2K\r " << "상대와 연결이 끊겼습니다. 종료<┛";
-			
-			while (_getch() != 13)
+			if (*isGameGoingOn)
 			{
+				std::cout << "\33[2K\r " << "상대와 연결이 끊겼습니다. 종료<┛";
 
+				while (_getch() != 13)
+				{
+
+				}
+
+				exit(0);
 			}
-
-			exit(0);
 		}
 		else
 		{
@@ -104,7 +107,7 @@ void Server(SOCKET* sock, int* serverStatus, std::string* receive)
 	system("pause");
 }
 
-void Client(SOCKET* sock, int* clientStatus, std::string* receive)
+void Client(SOCKET* sock, int* clientStatus, std::string* receive, bool* isGameGoingOn)
 {
 	int port = 727;
 	std::string ipAddress;
@@ -171,14 +174,17 @@ void Client(SOCKET* sock, int* clientStatus, std::string* receive)
 		
 		if (bytesReceived == SOCKET_ERROR || bytesReceived == 0)
 		{
-			std::cout << "\33[2K\r " << "상대와 연결이 끊겼습니다. 종료<┛";
-
-			while (_getch() != 13)
+			if (*isGameGoingOn)
 			{
+				std::cout << "\33[2K\r " << "상대와 연결이 끊겼습니다. 종료<┛";
 
+				while (_getch() != 13)
+				{
+
+				}
+
+				exit(0);
 			}
-
-			exit(0);
 		}
 		else
 		{

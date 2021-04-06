@@ -70,13 +70,14 @@ int main()
 
 	SOCKET sock;
 	std::string receive;
+	bool isGameGoingOn;
 
 	// 게임 열기
 	if (menuNumber == TO_SERVER_MENU)
 	{
 		int serverStatus = 0;
 
-		connection = std::thread(Server, &sock, &serverStatus, &receive);
+		connection = std::thread(Server, &sock, &serverStatus, &receive, &isGameGoingOn);
 		ServerMenu(&serverStatus);
 	}
 	// 게임 접속하기
@@ -84,7 +85,7 @@ int main()
 	{
 		int clientStatus = 0;
 
-		connection = std::thread(Client, &sock, &clientStatus, &receive);
+		connection = std::thread(Client, &sock, &clientStatus, &receive, &isGameGoingOn);
 		ClientMenu(&clientStatus);
 	}
 
@@ -109,7 +110,7 @@ int main()
 	system("mode con:cols=34 lines=22");
 	std::string notification;
 	
-	int time = 300;
+	int time = 60 * 5; // 제한 시간 5분
 	bool timeout = false;
 
 	while (!timeout)
@@ -198,7 +199,7 @@ int main()
 					if (refreshNeeded)
 					{
 						PrintBoard(board, myColor, turn, cursorX, cursorY, notification);
-						std::cout << std::endl;
+						std::cout << "\n";
 						refreshNeeded = false;
 					}
 					
@@ -263,7 +264,9 @@ int main()
 	}
 
 	PrintBoard(board, myColor, NULL, NULL, NULL, "");
+
 	int winner;
+	isGameGoingOn = false;
 
 	if (timeout)
 	{
@@ -280,7 +283,7 @@ int main()
 	}
 	else
 	{
-		int blackPieceCount, whitePieceCount;\
+		int blackPieceCount, whitePieceCount;
 
 		CountPiece(board, &blackPieceCount, &whitePieceCount);
 
