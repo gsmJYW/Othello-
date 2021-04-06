@@ -72,7 +72,7 @@ void PrintStartMenu(int menu)
 		<< "　　　　　　　　　　　　　　　　　　　　　　 ┃　　　　　　　　　 ┃\n"
 		<< "　　　　　　　　　　　　　　　　　　　　　　 ┃　　  　종료　　　 ┃\n"
 		<< "　　　　　　　　　　　　　　　　　　　　　　 ┃　　　　　　　　　 ┃\n"
-		<< "　　　　　　　　　　　　　　　　　　　　　　 ┗━━━━━━━━━━━━━━━━━━━┛\n";
+		<< "　　　　　　　　　　　　　　　　　　　　　　 ┗━━━━━━━━━━━━━━━━━━━┛\n\n";
 
 	SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 7);
 }
@@ -193,7 +193,7 @@ void PrintConnectionMenu(int menu)
 		<< "　　　　　　　　　　　　　　　　　　　　　　 ┃　　　　　　　　　 ┃\n"
 		<< "　　　　　　　　　　　　　　　　　　　　　　 ┃　　  　취소　　　 ┃\n"
 		<< "　　　　　　　　　　　　　　　　　　　　　　 ┃　　　　　　　　　 ┃\n"
-		<< "　　　　　　　　　　　　　　　　　　　　　　 ┗━━━━━━━━━━━━━━━━━━━┛\n";
+		<< "　　　　　　　　　　　　　　　　　　　　　　 ┗━━━━━━━━━━━━━━━━━━━┛\n\n";
 
 	SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 7);
 }
@@ -358,7 +358,7 @@ void PrintColorMenu(int menu, int color, int opponentColor)
 		<< "　　　　　　　　　　　　　　　　　　　　　　 ┃　　　　 백　　　　┃ "
 		<< (color == 2 ? "내가 선택함" : (opponentColor == 2 ? "상대가 선택함" : ""))
 		<< "\n　　　　　　　　　　　　　　　　　　　　　　 ┃　　　　　　　　　 ┃\n"
-		<< "　　　　　　　　　　　　　　　　　　　　　　 ┗━━━━━━━━━━━━━━━━━━━┛\n";
+		<< "　　　　　　　　　　　　　　　　　　　　　　 ┗━━━━━━━━━━━━━━━━━━━┛\n\n\n";
 
 	SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 7);
 }
