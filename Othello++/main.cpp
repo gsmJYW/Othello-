@@ -1,4 +1,6 @@
 ﻿#include <WS2tcpip.h>
+#include <stdlib.h>
+#include <time.h>
 #include <vector>
 #include <regex>
 #include <chrono>
@@ -70,7 +72,12 @@ int main()
 
 	SOCKET sock;
 	std::string receive;
+	std::vector<std::string> receiveArgs;
+
 	bool isGameGoingOn;
+	int myColor, opponentColor;
+
+	srand((unsigned)time(NULL));
 
 	// 게임 열기
 	if (menuNumber == TO_SERVER_MENU)
@@ -79,6 +86,19 @@ int main()
 
 		connection = std::thread(Server, &sock, &serverStatus, &receive, &isGameGoingOn);
 		ServerMenu(&serverStatus);
+
+		if (rand() % 2)
+		{
+			myColor = BLACK;
+			opponentColor = WHITE;
+		}
+		else
+		{
+			myColor = WHITE;
+			opponentColor = BLACK;
+		}
+
+		Send(sock, "color " + std::to_string(opponentColor));
 	}
 	// 게임 접속하기
 	else
@@ -87,18 +107,27 @@ int main()
 
 		connection = std::thread(Client, &sock, &clientStatus, &receive, &isGameGoingOn);
 		ClientMenu(&clientStatus);
-	}
 
-	int myColor = ColorMenu(sock, &receive); // 색 선택
-	int opponentColor;
+		while (true)
+		{
+			if (receive.length() > 0)
+			{
+				receiveArgs = Split(receive);
+				myColor = std::stoi(receiveArgs[1]);
 
-	if (myColor == BLACK)
-	{
-		opponentColor = WHITE;
-	}
-	else
-	{
-		opponentColor = BLACK;
+				if (myColor == BLACK)
+				{
+					opponentColor = WHITE;
+				}
+				else
+				{
+					opponentColor = BLACK;
+				}
+
+				receive = "";
+				break;
+			}
+		}
 	}
 
 	int board[8][8];
@@ -108,10 +137,14 @@ int main()
 	turn = BLACK;		// 흑이 선공
 
 	system("mode con:cols=34 lines=22");
-	std::string notification;
-	
+
 	double time = 60 * 5; // 제한 시간 5분
 	bool timeout = false;
+
+	std::string notification = "당신은 " + std::string(myColor == BLACK ? "흑" : "백") + "입니다.";
+	PrintBoard(board, myColor, NULL, NULL, NULL, notification);
+	
+	Sleep(3000);
 
 	while (!timeout)
 	{
@@ -138,7 +171,7 @@ int main()
 
 				// 시간 측정
 				std::chrono::system_clock::time_point start = std::chrono::system_clock::now();
-				std::chrono::duration<double> elapsedSecs;
+				std::chrono::duration<double> elapsedSecs = start - start;
 
 				while (myColor == turn && time > elapsedSecs.count())
 				{
@@ -242,9 +275,15 @@ int main()
 
 			while (true)
 			{
+				// 상대 턴일 때 키 입력 제거
+				if (_kbhit())
+				{
+					_getch();
+				}
+
 				if (receive.length() > 0)
 				{
-					std::vector<std::string> receiveArgs = Split(receive);
+					receiveArgs = Split(receive);
 
 					if (receiveArgs[0] == "place")
 					{
