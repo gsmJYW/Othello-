@@ -46,7 +46,31 @@ void CountPiece(int board[][8], int* blackPieceCount, int* whitePieceCount)
 // 보드판 출력
 void PrintBoard(int board[][8], int myColor, int turn, int cursorX, int cursorY, std::string notification)
 {
-	system("cls");	
+	system("cls");
+	
+	// 돌 개수 출력
+
+	int whitePieceCount, blackPieceCount;
+	CountPiece(board, &blackPieceCount, &whitePieceCount);
+
+	if (turn == BLACK)
+	{
+		SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 6);
+	}
+
+	std::cout << "\n　　　　　흑 ";
+	SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 7);
+
+	std::cout << std::setfill('0') << std::setw(2) << blackPieceCount << " vs " << std::setfill('0') << std::setw(2) << whitePieceCount;
+
+	if (turn == WHITE)
+	{
+		SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 6);
+	}
+
+	std::cout << " 백\n";
+	SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 7);
+	
 	std::cout << "┏━━━┳━━━┳━━━┳━━━┳━━━┳━━━┳━━━┳━━━┓\n";
 	
 	for (int y = 0; y < 8; y++)
@@ -86,31 +110,7 @@ void PrintBoard(int board[][8], int myColor, int turn, int cursorX, int cursorY,
 		}
 	}
 	
-	std::cout << "┗━━━┻━━━┻━━━┻━━━┻━━━┻━━━┻━━━┻━━━┛\n";
-	
-	// 돌 개수 출력
-	
-	int whitePieceCount, blackPieceCount;
-	CountPiece(board, &blackPieceCount, &whitePieceCount);
-	
-	if (turn == BLACK)
-	{
-		SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 6);
-	}
-
-	std::cout << " 흑 ";
-	SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 7);
-	
-	std::cout << std::setfill('0') << std::setw(2) << blackPieceCount << " vs " << std::setfill('0') << std::setw(2) << whitePieceCount;
-
-	if (turn == WHITE)
-	{
-		SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 6);
-	}
-
-	std::cout << " 백\n ";
-	SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 7);
-
+	std::cout << "┗━━━┻━━━┻━━━┻━━━┻━━━┻━━━┻━━━┻━━━┛\n ";
 	std::cout << notification;
 	return;
 }
