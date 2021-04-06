@@ -106,84 +106,116 @@ int main()
 	turn = BLACK; // 흑이 선공
 
 	system("mode con:cols=34 lines=20");
+	std::string notification;
 	
 	while (true)
 	{
+		bool AmIAbleToPlace = isThereAvailablePlace(board, myColor);
+		bool isOpponentAbleToPlace = isThereAvailablePlace(board, opponentColor);
+
+		// 두 명 모두 돌을 놓을 수 없을 경우 게임 종료
+		if (!AmIAbleToPlace && !isOpponentAbleToPlace)
+		{
+			break;
+		}
+
 		// 내 턴일 때
 		if (myColor == turn)
 		{
-			std::string notification = "당신 차례입니다.";
-
-			int cursorX = 0;
-			int cursorY = 0;
-			
-			bool refreshNeeded = true;
-
-			while (myColor == turn)
+			if (AmIAbleToPlace)
 			{
-				if (_kbhit())
+				notification = "당신 차례입니다.";
+
+				int cursorX = 0;
+				int cursorY = 0;
+
+				bool refreshNeeded = true;
+
+				while (myColor == turn)
 				{
-					switch (_getch())
+					if (_kbhit())
 					{
-					// 위
-					case 72:
-						if (cursorY > 0)
+						switch (_getch())
 						{
-							cursorY--;
-							refreshNeeded = true;
-						}
-						break;
+							// 위
+						case 72:
+							if (cursorY > 0)
+							{
+								cursorY--;
+								refreshNeeded = true;
+							}
+							break;
 
-					// 오른쪽
-					case 75:
-						if (cursorX > 0)
-						{
-							cursorX--;
-							refreshNeeded = true;
-						}
-						break;
+							// 오른쪽
+						case 75:
+							if (cursorX > 0)
+							{
+								cursorX--;
+								refreshNeeded = true;
+							}
+							break;
 
-					// 왼쪽
-					case 77:
-						if (cursorX < 7)
-						{
-							cursorX++;
-							refreshNeeded = true;
-						}
-						break;
+							// 왼쪽
+						case 77:
+							if (cursorX < 7)
+							{
+								cursorX++;
+								refreshNeeded = true;
+							}
+							break;
 
-					// 아래
-					case 80:
-						if (cursorY < 7)
-						{
-							cursorY++;
-							refreshNeeded = true;
-						}
-						break;
+							// 아래
+						case 80:
+							if (cursorY < 7)
+							{
+								cursorY++;
+								refreshNeeded = true;
+							}
+							break;
 
-					// 엔터
-					case 13:
-						if (isAvailable(board, myColor, cursorX, cursorY))
-						{
-							refreshNeeded = true;
-							placePiece(board, myColor, cursorX, cursorY);
+							// 엔터
+						case 13:
+							if (isAvailable(board, myColor, cursorX, cursorY))
+							{
+								refreshNeeded = true;
+								placePiece(board, myColor, cursorX, cursorY);
 
-							Send(sock, "place " + std::to_string(myColor) + " " + std::to_string(cursorX) + " " + std::to_string(cursorY));
-							turn = opponentColor;
+								Send(sock, "place " + std::to_string(myColor) + " " + std::to_string(cursorX) + " " + std::to_string(cursorY));
+								turn = opponentColor;
+							}
+							break;
 						}
-						break;
+					}
+
+					if (refreshNeeded)
+					{
+						PrintBoard(board, myColor, turn, cursorX, cursorY, notification);
+						refreshNeeded = false;
 					}
 				}
+			}
+			// 돌을 놓을 수 없을 경우
+			else
+			{
+				notification = "돌을 놓을 공간이 없습니다.";
+				turn = opponentColor;
 
-				if (refreshNeeded)
-				{
-					PrintBoard(board, myColor, turn, cursorX, cursorY, notification);
-					refreshNeeded = false;
-				}
+				PrintBoard(board, myColor, turn, NULL, NULL, notification);
+				Sleep(4000);
+
+				Send(sock, "pass");
 			}
 		}
 		else {
-			std:: string notification = "상대 차례입니다.";
+			if (isOpponentAbleToPlace)
+			{
+				notification = "상대 차례입니다.";
+			}
+			else
+			{
+				notification = "상대가 돌을 놓을 공간이 없습니다.";
+			}
+			
 			PrintBoard(board, myColor, turn, NULL, NULL, notification);
 
 			while (true)
@@ -203,6 +235,38 @@ int main()
 				}
 			}
 		}
+	}
+
+	int myCount, opponentCount;
+
+	if (myColor == BLACK)
+	{
+		CountPiece(board, &myCount, &opponentCount);
+	}
+	else
+	{
+		CountPiece(board, &opponentCount, &myCount);
+	}
+
+	if (myCount > opponentCount)
+	{
+		notification = "당신의 승리입니다.";
+	}
+	else if (myCount < opponentCount)
+	{
+		notification = "상대의 승리입니다.";
+	}
+	else
+	{
+		notification = "무승부입니다.";
+	}
+
+	PrintBoard(board, myColor, 0, NULL, NULL, notification);
+	std::cout << " 종료<┛";
+
+	while (_getch() != 13)
+	{
+
 	}
 
 	exit(0);
