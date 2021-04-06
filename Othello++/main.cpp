@@ -1,6 +1,7 @@
 ﻿#include <WS2tcpip.h>
 #include <vector>
 #include <regex>
+#include <chrono>
 #include "menu.h"
 #include "board.h"
 
@@ -102,13 +103,16 @@ int main()
 	int board[8][8];
 	int turn;
 
-	initBoard(board);  // 돌 교차 후 시작
-	turn = BLACK; // 흑이 선공
+	initBoard(board);	// 돌 교차 후 시작
+	turn = BLACK;		// 흑이 선공
 
-	system("mode con:cols=34 lines=20");
+	system("mode con:cols=34 lines=22");
 	std::string notification;
 	
-	while (true)
+	int time = 300;
+	bool timeout = false;
+
+	while (!timeout)
 	{
 		bool AmIAbleToPlace = isThereAvailablePlace(board, myColor);
 		bool isOpponentAbleToPlace = isThereAvailablePlace(board, opponentColor);
@@ -131,7 +135,11 @@ int main()
 
 				bool refreshNeeded = true;
 
-				while (myColor == turn)
+				// 시간 측정
+				std::chrono::system_clock::time_point start = std::chrono::system_clock::now();
+				std::chrono::duration<double> elapsedSecs;
+
+				while (myColor == turn && time > elapsedSecs.count())
 				{
 					if (_kbhit())
 					{
@@ -190,8 +198,21 @@ int main()
 					if (refreshNeeded)
 					{
 						PrintBoard(board, myColor, turn, cursorX, cursorY, notification);
+						std::cout << std::endl;
 						refreshNeeded = false;
 					}
+					
+					elapsedSecs = std::chrono::system_clock::now() - start;
+					printf("\33[2K\r 제한 시간: %.1f", time - elapsedSecs.count());
+				}
+
+				time -= elapsedSecs.count();
+
+				// 시간 초과
+				if (time <= 0)
+				{
+					timeout = true;
+					Send(sock, "timeout");
 				}
 			}
 			// 돌을 놓을 수 없을 경우
@@ -201,7 +222,7 @@ int main()
 				turn = opponentColor;
 
 				PrintBoard(board, myColor, turn, NULL, NULL, notification);
-				Sleep(4000);
+				Sleep(3000);
 
 				Send(sock, "pass");
 			}
@@ -228,6 +249,10 @@ int main()
 					{
 						placePiece(board, std::stoi(receiveArgs[1]), std::stoi(receiveArgs[2]), std::stoi(receiveArgs[3]));
 					}
+					else if (receiveArgs[0] == "timeout")
+					{
+						timeout = true;
+					}
 
 					turn = myColor;
 					receive = "";
@@ -237,31 +262,57 @@ int main()
 		}
 	}
 
-	int myCount, opponentCount;
+	PrintBoard(board, myColor, NULL, NULL, NULL, "");
+	int winner;
 
-	if (myColor == BLACK)
+	if (timeout)
 	{
-		CountPiece(board, &myCount, &opponentCount);
+		if (time <= 0)
+		{
+			std::cout << "시간을 다 썼습니다.";
+			winner = opponentColor;
+		}
+		else
+		{
+			std::cout << "상대가 시간을 다 썼습니다.";
+			winner = myColor;
+		}
 	}
 	else
 	{
-		CountPiece(board, &opponentCount, &myCount);
+		int blackPieceCount, whitePieceCount;\
+
+		CountPiece(board, &blackPieceCount, &whitePieceCount);
+
+		if (blackPieceCount > whitePieceCount)
+		{
+			std::cout << "흑돌이 더 많습니다.";
+			winner = BLACK;
+		}
+		else if (whitePieceCount > blackPieceCount)
+		{
+			std::cout << "백돌이 더 많습니다.";
+			winner = WHITE;
+		}
+		else
+		{
+			std::cout << "돌 수가 같습니다.";
+			winner = 0;
+		}
 	}
 
-	if (myCount > opponentCount)
+	std::cout << "\n ";
+
+	if (winner == 0)
 	{
-		notification = "당신의 승리입니다.";
-	}
-	else if (myCount < opponentCount)
-	{
-		notification = "상대의 승리입니다.";
+		std::cout << "무승부입니다.";
 	}
 	else
 	{
-		notification = "무승부입니다.";
+		std::cout << (winner == myColor ? "당신" : "상대")
+			<< "의 승리입니다.";
 	}
 
-	PrintBoard(board, myColor, 0, NULL, NULL, notification);
 	std::cout << " 종료<┛";
 
 	while (_getch() != 13)
