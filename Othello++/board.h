@@ -6,6 +6,7 @@
 #define BLACK 1
 #define WHITE 2
 
+// 보드판 초기 설정
 void initBoard(int board[][8])
 {
 	// 배열 초기화
@@ -16,6 +17,30 @@ void initBoard(int board[][8])
 	// 흑돌과 백돌 교차 후 시작
 	board[3][3] = WHITE; board[3][4] = BLACK;
 	board[4][3] = BLACK; board[4][4] = WHITE;
+}
+
+// 돌 개수 카운트
+void CountPiece(int board[][8], int* blackPieceCount, int* whitePieceCount)
+{
+	*blackPieceCount = 0;
+	*whitePieceCount = 0;
+
+	for (int y = 0; y < 8; y++)
+	{
+		for (int x = 0; x < 8; x++)
+		{
+			switch (board[y][x])
+			{
+			case BLACK:
+				(*blackPieceCount)++;
+				break;
+
+			case WHITE:
+				(*whitePieceCount)++;
+				break;
+			}
+		}
+	}
 }
 
 // 보드판 출력
@@ -62,28 +87,11 @@ void PrintBoard(int board[][8], int myColor, int turn, int cursorX, int cursorY,
 	}
 	
 	std::cout << "┗━━━┻━━━┻━━━┻━━━┻━━━┻━━━┻━━━┻━━━┛\n";
-
-	int whitePieceCount = 0, blackPieceCount = 0; // 돌 개수
-
-	// 돌 개수 카운트
-	for (int y = 0; y < 8; y++)
-	{
-		for (int x = 0; x < 8; x++)
-		{
-			switch (board[y][x])
-			{
-			case BLACK:
-				blackPieceCount++;
-				break;
-
-			case WHITE:
-				whitePieceCount++;
-				break;
-			}
-		}
-	}
-
+	
 	// 돌 개수 출력
+	
+	int whitePieceCount, blackPieceCount;
+	CountPiece(board, &blackPieceCount, &whitePieceCount);
 	
 	if (turn == BLACK)
 	{

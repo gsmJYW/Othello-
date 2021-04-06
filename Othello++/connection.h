@@ -81,12 +81,19 @@ void Server(SOCKET* sock, int* serverStatus, std::string* receive)
 		
 		if (bytesReceived == SOCKET_ERROR || bytesReceived == 0)
 		{
-			system("cls");
-			std::cout << "클라이언트와의 연결이 끊겼습니다." << std::endl;
-			exit(1);
+			std::cout << "\33[2K\r " << "상대와 연결이 끊겼습니다. 종료<┛";
+			
+			while (_getch() != 13)
+			{
+
+			}
+
+			exit(0);
 		}
-		
-		*receive = std::string(buf, 0, bytesReceived);
+		else
+		{
+			*receive = std::string(buf, 0, bytesReceived);
+		}
 	}
 
 	// 소켓 닫기
@@ -164,12 +171,19 @@ void Client(SOCKET* sock, int* clientStatus, std::string* receive)
 		
 		if (bytesReceived == SOCKET_ERROR || bytesReceived == 0)
 		{
-			system("cls");
-			std::cout << "서버와의 연결이 끊겼습니다." << std::endl;
-			exit(1);
-		}
+			std::cout << "\33[2K\r " << "상대와 연결이 끊겼습니다. 종료<┛";
 
-		*receive = std::string(buf, 0, bytesReceived);
+			while (_getch() != 13)
+			{
+
+			}
+
+			exit(0);
+		}
+		else
+		{
+			*receive = std::string(buf, 0, bytesReceived);
+		}
 	}
 
 	closesocket(*sock);
