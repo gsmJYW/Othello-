@@ -110,7 +110,7 @@ int main()
 	system("mode con:cols=34 lines=22");
 	std::string notification;
 	
-	int time = 60 * 5; // 제한 시간 5분
+	double time = 60 * 5; // 제한 시간 5분
 	bool timeout = false;
 
 	while (!timeout)
